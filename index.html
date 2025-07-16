@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adityesh Agarwal | Aspiring Machine Learning Engineer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cosmic Dark & Electric Blue -->
+    <!-- Application Structure Plan: Refined single-page application. Removed the Space Game section for a more focused professional presentation. The suggestion box is now user-initiated via a floating mail icon. The AI chatbot is also launched from a floating icon for universal access. Education section expanded to a three-card layout. -->
+    <!-- Visualization & Content Choices: 
+        - User Request: AI Chatbot -> Goal: Automate & Impress -> Viz/Method: Gemini API integration in a modal, now launched from a floating icon for better accessibility.
+        - User Request: Suggestion Box -> Goal: Gather Feedback -> Viz/Method: Fixed-position HTML form, now launched on-demand by clicking a floating mail icon.
+        - User Request: Update Education -> Goal: Provide Complete History -> Viz/Method: Expanded the grid layout to accommodate three distinct educational stages.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f0c29;
+            background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29);
+            background: linear-gradient(to right, #24243e, #302b63, #0f0c29);
+            color: #1a202c;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.8s ease-out;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .project-card, .education-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #e2e8f0;
+            height: 100%;
+        }
+        .project-card:hover, .education-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        .settings-modal, .chat-modal, .suggestion-modal {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .social-icon:hover {
+            transform: scale(1.2);
+        }
+        .project-icon {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+        .message {
+            max-width: 75%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+        }
+        .message.user {
+            background-color: #3b82f6;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.25rem;
+        }
+        .message.ai {
+            background-color: #e5e7eb;
+            color: #1f2937;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.25rem;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                 <a href="#home" class="text-2xl font-bold text-gray-800">Adityesh Agarwal</a>
+                 <button id="settings-btn" class="text-gray-500 hover:text-blue-600 transition hidden">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path></svg>
+                 </button>
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#home" class="nav-link text-gray-600 font-medium pb-1">Home</a>
+                <a href="#experience" class="nav-link text-gray-600 font-medium pb-1">Experience</a>
+                <a href="#education" class="nav-link text-gray-600 font-medium pb-1">Education</a>
+                <a href="#projects" class="nav-link text-gray-600 font-medium pb-1">Projects</a>
+                <a href="#skills" class="nav-link text-gray-600 font-medium pb-1">Skills</a>
+                <a href="#contact" class="nav-link text-gray-600 font-medium pb-1">Contact</a>
+            </div>
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-gray-700 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="#home" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Home</a>
+            <a href="#experience" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Experience</a>
+            <a href="#education" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Education</a>
+            <a href="#projects" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Projects</a>
+            <a href="#skills" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Skills</a>
+            <a href="#contact" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Contact</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 md:py-12">
+        
+        <section id="home" class="content-section">
+            <div class="flex flex-col md:flex-row items-center text-center md:text-left gap-12">
+                <div class="flex-shrink-0">
+                    <img id="profile-pic" class="w-48 h-48 rounded-full object-cover shadow-2xl mx-auto border-4 border-white" src="https://placehold.co/200x200/E2E8F0/4A5568?text=AA" alt="Adityesh Agarwal Profile Picture" onerror="this.onerror=null;this.src='https://placehold.co/200x200/E2E8F0/4A5568?text=AA';">
+                </div>
+                <div>
+                    <h1 class="text-5xl md:text-6xl font-black text-gray-900 leading-tight">
+                        Aspiring Machine Learning Engineer
+                    </h1>
+                    <p class="mt-4 max-w-2xl mx-auto md:mx-0 text-xl text-gray-700">
+                        A strong foundation in Electrical Engineering and hands-on experience in developing predictive models and intelligent systems.
+                    </p>
+                    <div class="mt-8 flex justify-center md:justify-start space-x-6">
+                        <a href="https://github.com/addy9799" target="_blank" rel="noopener noreferrer" class="social-icon text-gray-600 hover:text-gray-900 transition duration-300" title="GitHub">
+                            <svg class="w-9 h-9" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.168 6.839 9.492.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.378.203 2.398.1 2.651.64.7 1.03 1.595 1.03 2.688 0 3.848-2.338 4.695-4.566 4.943.359.308.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.001 10.001 0 0022 12c0-5.523-4.477-10-10-10z" clip-rule="evenodd"></path></svg>
+                        </a>
+                         <a href="https://www.linkedin.com/in/adityesh-agarwal-133199178/" target="_blank" rel="noopener noreferrer" class="social-icon text-gray-600 hover:text-blue-600 transition duration-300" title="LinkedIn">
+                            <svg class="w-9 h-9" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"></path></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div id="thought-of-the-day" class="mt-12 bg-white/80 p-6 rounded-xl shadow-lg border border-gray-200 text-center">
+                <p id="thought-text" class="text-lg italic text-gray-700">"Generating a thought..."</p>
+                <button id="new-thought-btn" class="mt-4 text-sm text-blue-600 hover:text-blue-800 font-semibold">New Thought</button>
+            </div>
+        </section>
+
+        <section id="experience" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-900">Professional Experience</h2>
+            </div>
+            <div class="max-w-4xl mx-auto">
+                <div class="relative border-l-4 border-blue-300 pl-10">
+                    <div class="mb-10">
+                        <div class="absolute w-5 h-5 bg-blue-500 rounded-full -left-3 mt-1.5 border-4 border-white"></div>
+                        <p class="text-sm font-medium text-blue-600">Oct 2024 – Jan 2025</p>
+                        <h3 class="text-2xl font-bold mt-1">Project Intern</h3>
+                        <p class="text-lg text-gray-700 font-medium">IISc Bangalore & Jyothi Institute of Technology</p>
+                        <ul class="mt-4 list-disc list-inside text-gray-600 space-y-2">
+                            <li>Developed a predictive model to analyze the temperature-strain relationship in Fiber Bragg Grating sensors, achieving high accuracy in forecasting sensor behavior.</li>
+                            <li>Engineered a data pipeline using Python and Pandas for efficient data cleaning, processing, and feature extraction from raw sensor readings.</li>
+                            <li>Implemented and fine-tuned Decision Tree and Polynomial Regression models with Scikit-Learn, leading to a significant improvement in prediction accuracy over baseline models.</li>
+                            <li class="font-semibold text-gray-800">*Project selected for presentation at the IEEE CONECCT Conference 2024, IISc Bangalore.*</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="education" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-900">Education</h2>
+            </div>
+            <div class="max-w-6xl mx-auto grid md:grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="education-card bg-white rounded-lg shadow-lg p-8 flex flex-col">
+                    <p class="text-sm font-medium text-blue-600">Expected Aug 2025</p>
+                    <h3 class="text-2xl font-bold mt-1">Bachelor of Engineering, EEE</h3>
+                    <p class="text-lg text-gray-700 font-medium">RV College of Engineering, Bengaluru</p>
+                    <p class="mt-4 text-gray-600">CGPA: 7.0/10.0</p>
+                </div>
+                 <div class="education-card bg-white rounded-lg shadow-lg p-8 flex flex-col">
+                    <p class="text-sm font-medium text-blue-600">2018 - 2020</p>
+                    <h3 class="text-2xl font-bold mt-1">Allen Career Institute, Kota</h3>
+                    <p class="text-lg text-gray-700 font-medium">PCM, JEE Preparation</p>
+                    <p class="mt-4 text-gray-600">Focused on intensive preparation for national engineering entrance exams.</p>
+                </div>
+                <div class="education-card bg-white rounded-lg shadow-lg p-8 flex flex-col">
+                    <p class="text-sm font-medium text-blue-600">Completed 2018</p>
+                    <h3 class="text-2xl font-bold mt-1">CBSE (Class X)</h3>
+                    <p class="text-lg text-gray-700 font-medium">Delhi Public School, Siliguri</p>
+                    <p class="mt-4 text-gray-600">Completed secondary education with a strong foundation in science and mathematics.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-900">Project Showcase</h2>
+                <p class="mt-2 text-lg text-gray-600">A selection of projects demonstrating my skills in AI, power systems, and hardware.</p>
+            </div>
+            
+            <div class="mb-16">
+                <h3 class="text-2xl font-bold text-center text-gray-800 mb-4">Project Impact Summary</h3>
+                 <div class="chart-container">
+                    <canvas id="projectImpactChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            </div>
+        </section>
+
+        <section id="skills" class="content-section">
+             <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-900">Technical Skills</h2>
+            </div>
+             <div class="chart-container">
+                <canvas id="skillsChart"></canvas>
+            </div>
+        </section>
+
+        <section id="contact" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-900">Get In Touch</h2>
+                <p class="mt-2 text-lg text-gray-600">I'm open to new opportunities and collaborations. Feel free to reach out!</p>
+            </div>
+            <div class="max-w-xl mx-auto bg-white p-8 rounded-2xl shadow-xl">
+                <form id="contact-form">
+                    <div class="mb-4">
+                        <label for="name" class="block text-gray-700 font-medium mb-2">Your Name</label>
+                        <input type="text" id="name" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="email" class="block text-gray-700 font-medium mb-2">Your Email</label>
+                        <input type="email" id="email" name="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="subject" class="block text-gray-700 font-medium mb-2">Subject</label>
+                        <input type="text" id="subject" name="subject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="message" class="block text-gray-700 font-medium mb-2">Message</label>
+                        <textarea id="message" name="message" rows="5" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition duration-300 w-full">
+                            Send Email
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Floating Action Buttons -->
+    <div class="fixed bottom-5 right-5 z-40 flex flex-col gap-4">
+        <button id="open-suggestion-btn" class="bg-indigo-600 text-white rounded-full shadow-2xl w-14 h-14 flex items-center justify-center hover:bg-indigo-700 transition" title="Send a Suggestion">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+        </button>
+    </div>
+     <div class="fixed bottom-5 left-5 z-40">
+        <button id="open-chat-btn" class="bg-blue-600 text-white rounded-full shadow-2xl w-14 h-14 flex items-center justify-center hover:bg-blue-700 transition" title="Chat with AI Assistant">
+            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path></svg>
+        </button>
+    </div>
+
+    <!-- Modals -->
+    <div id="suggestion-modal" class="suggestion-modal fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="font-bold text-lg">Have a Suggestion?</h4>
+                <button id="close-suggestion-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <form id="suggestion-form">
+                <textarea id="suggestion-message" rows="5" class="w-full text-sm p-2 border rounded-md" placeholder="Let me know what you think..."></textarea>
+                <button type="submit" class="w-full mt-2 bg-indigo-600 text-white text-sm py-2 rounded-md hover:bg-indigo-700">Send Suggestion</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="settings-modal fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+            <h3 class="text-2xl font-bold mb-6">Portfolio Settings</h3>
+            <div class="mb-4">
+                <label for="image-url-input" class="block text-gray-700 font-medium mb-2">Profile Picture URL</label>
+                <input type="text" id="image-url-input" placeholder="https://example.com/your-image.jpg" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex justify-end gap-4 mt-8">
+                 <button id="cancel-settings-btn" class="px-6 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition">Cancel</button>
+                 <button id="save-settings-btn" class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-modal" class="chat-modal fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg h-full max-h-[70vh] flex flex-col">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold">AI Assistant</h3>
+                <button id="close-chat-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <div id="message-area" class="p-4 flex-grow overflow-y-auto flex flex-col gap-4">
+                <div class="message ai">Hello! I'm Adityesh's AI assistant. Feel free to ask me anything about his skills or projects.</div>
+            </div>
+            <div class="p-4 border-t">
+                <form id="message-form" class="flex gap-2">
+                    <input type="text" id="message-input" class="w-full px-4 py-2 border rounded-lg" placeholder="Ask about a project..." required>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link, #mobile-menu a');
+            const contentSections = document.querySelectorAll('.content-section');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const contactForm = document.getElementById('contact-form');
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsModal = document.getElementById('settings-modal');
+            const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+            const saveSettingsBtn = document.getElementById('save-settings-btn');
+            const imageUrlInput = document.getElementById('image-url-input');
+            const profilePic = document.getElementById('profile-pic');
+            
+            const openChatBtn = document.getElementById('open-chat-btn');
+            const chatModal = document.getElementById('chat-modal');
+            const closeChatBtn = document.getElementById('close-chat-btn');
+            const messageForm = document.getElementById('message-form');
+            const messageInput = document.getElementById('message-input');
+            const messageArea = document.getElementById('message-area');
+            
+            const thoughtText = document.getElementById('thought-text');
+            const newThoughtBtn = document.getElementById('new-thought-btn');
+
+            const suggestionModal = document.getElementById('suggestion-modal');
+            const openSuggestionBtn = document.getElementById('open-suggestion-btn');
+            const closeSuggestionBtn = document.getElementById('close-suggestion-btn');
+            const suggestionForm = document.getElementById('suggestion-form');
+
+            const resumeContext = `
+                Adityesh Agarwal is an Aspiring Machine Learning Engineer studying Electrical and Electronics Engineering at RV College of Engineering (Expected Graduation: Aug 2025, CGPA: 7.0).
+                Experience: Project Intern at IISc Bangalore & Jyothi Institute of Technology (Oct 2024 – Jan 2025), where he developed a predictive model for temperature-strain analysis using Fiber Bragg Grating sensors with Python, Pandas, and Scikit-Learn. The project was selected for the IEEE CONECCT Conference 2024.
+                Key Projects:
+                1. Energy Management System for Hybrid Microgrid: Used LSTMs for time-series forecasting to optimize energy dispatch, achieving a simulated 15% cost reduction.
+                2. DC-DC Converter Analysis: Analyzed modulation strategies in MATLAB/Simulink, finding an 8% efficiency gain with TPS.
+                3. Solar-Powered Wireless Charging: Built a prototype with automatic solar tracking that increased energy capture by over 30%.
+                Technical Skills: Python, C/C++, SQL, Scikit-Learn, Pandas, NumPy, Matplotlib, NLTK, TensorFlow/Keras, Machine Learning, Power Systems, Control Systems.
+            `;
+            let chatHistory = [];
+
+            async function callGeminiAPI(prompt) {
+                const apiKey = "AIzaSyBFfOb5CW-4QySTHDCZoHqUNdNbldWaGlk";
+                if (!apiKey) {
+                    return "AI features are currently not configured. Please contact Adityesh directly.";
+                }
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }]
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                    const result = await response.json();
+                    return result.candidates[0].content.parts[0].text;
+                } catch (error) {
+                    console.error("Gemini API Error:", error);
+                    return "Sorry, I'm having trouble connecting to my brain right now.";
+                }
+            }
+            
+            async function getAIThought() {
+                thoughtText.textContent = 'Generating a new thought...';
+                const prompt = "Generate a single, profound, one-sentence thought for the day related to the intersection of technology, artificial intelligence, and human potential.";
+                const thought = await callGeminiAPI(prompt);
+                thoughtText.textContent = `"${thought}"`;
+            }
+
+            newThoughtBtn.addEventListener('click', getAIThought);
+
+            openChatBtn.addEventListener('click', () => {
+                chatModal.classList.remove('hidden');
+                chatModal.classList.add('flex');
+            });
+            closeChatBtn.addEventListener('click', () => {
+                chatModal.classList.add('hidden');
+                chatModal.classList.remove('flex');
+            });
+            
+            messageForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userInput = messageInput.value.trim();
+                if (userInput === '') return;
+                
+                addMessage(userInput, 'user');
+                messageInput.value = '';
+                
+                const loader = addMessage('', 'ai', true);
+
+                const prompt = `You are a helpful and friendly AI assistant for Adityesh Agarwal's portfolio. Based on the following context about him, answer the user's question. Keep your answers concise and professional. CONTEXT: ${resumeContext}. PREVIOUS CHAT HISTORY: ${JSON.stringify(chatHistory)}. USER QUESTION: "${userInput}"`;
+                const aiResponse = await callGeminiAPI(prompt);
+                
+                loader.remove();
+                addMessage(aiResponse, 'ai');
+                
+                chatHistory.push({user: userInput, assistant: aiResponse});
+                if (chatHistory.length > 4) chatHistory.shift(); 
+            });
+
+            function addMessage(text, sender, isLoading = false) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `message ${sender}`;
+                if (isLoading) {
+                    const loaderDiv = document.createElement('div');
+                    loaderDiv.className = 'loader';
+                    msgDiv.appendChild(loaderDiv);
+                } else {
+                    msgDiv.textContent = text;
+                }
+                messageArea.appendChild(msgDiv);
+                messageArea.scrollTop = messageArea.scrollHeight;
+                return msgDiv;
+            }
+
+            openSuggestionBtn.addEventListener('click', () => {
+                suggestionModal.classList.remove('hidden');
+                suggestionModal.classList.add('flex');
+            });
+            closeSuggestionBtn.addEventListener('click', () => {
+                suggestionModal.classList.add('hidden');
+                suggestionModal.classList.remove('flex');
+            });
+
+            suggestionForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const message = document.getElementById('suggestion-message').value;
+                const mailtoLink = `mailto:adityeshagarwal980@gmail.com?subject=Portfolio Suggestion&body=${encodeURIComponent(message)}`;
+                window.location.href = mailtoLink;
+                document.getElementById('suggestion-message').value = '';
+                closeSuggestionBtn.click();
+            });
+
+            const projectsData = [
+                {
+                    title: "Energy Management System for Hybrid Microgrid",
+                    tags: ["AI/ML", "Power Systems"],
+                    icon: "🧠",
+                    description: `
+                        <ul class="list-disc list-inside space-y-2 mt-2">
+                            <li>Engineered an intelligent Energy Management System (EMS) that reduced operational costs by 15% (simulated) by optimizing energy dispatch from solar, wind, and battery storage units.</li>
+                            <li>Developed a time-series forecasting model using LSTM neural networks in Python to accurately predict renewable energy availability and load demand 24 hours in advance.</li>
+                            <li>Built a dynamic MATLAB/Simulink model of the hybrid microgrid to simulate real-world performance and validate the effectiveness of the AI-driven control strategies.</li>
+                        </ul>`,
+                    impact: 15,
+                    impactLabel: 'Cost Reduction (%)'
+                },
+                {
+                    title: "Analysis of Modulation Strategies for DC-DC Converter",
+                    tags: ["Power Systems"],
+                    icon: "⚡️",
+                    description: `
+                        <ul class="list-disc list-inside space-y-2 mt-2">
+                             <li>Conducted a comprehensive simulation-based analysis in MATLAB/Simulink to evaluate the performance of SPS, DPS, and TPS modulation strategies for DAB converters.</li>
+                             <li>Identified that the Triple Phase Shift (TPS) strategy improved power transfer efficiency by up to 8% under variable load conditions compared to the standard SPS method.</li>
+                             <li>Produced detailed performance reports and visualizations comparing control complexity and load adaptability, providing key insights for optimal converter design.</li>
+                        </ul>`,
+                    impact: 8,
+                    impactLabel: 'Efficiency Gain (%)'
+                },
+                {
+                    title: "Solar-Powered Wireless Charging with Solar Tracking",
+                    tags: ["Hardware", "Power Systems"],
+                    icon: "☀️",
+                    description: `
+                         <ul class="list-disc list-inside space-y-2 mt-2">
+                            <li>Designed and built a prototype of a self-sufficient wireless charging station that increased daily energy capture by over 30% using an automatic dual-axis solar tracking system.</li>
+                            <li>Programmed an STM-32 microcontroller to process LDR sensor data and precisely control servo motors, ensuring the solar panel maintained optimal alignment with the sun.</li>
+                        </ul>`,
+                    impact: 30,
+                    impactLabel: 'Energy Capture Increase (%)'
+                }
+            ];
+
+            const projectsContainer = document.querySelector('#projects .grid');
+            projectsData.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'project-card bg-white rounded-lg shadow-lg p-6 cursor-pointer flex flex-col items-center text-center';
+                card.innerHTML = `
+                    <div class="project-icon text-blue-500 mb-4">${project.icon}</div>
+                    <h3 class="text-xl font-bold text-gray-800">${project.title}</h3>
+                    <div class="mt-2 flex flex-wrap gap-2 justify-center">${project.tags.map(tag => `<span class="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${tag}</span>`).join('')}</div>
+                    <div class="project-details hidden mt-4 text-gray-600 text-left">${project.description}</div>
+                `;
+                projectsContainer.appendChild(card);
+                
+                card.addEventListener('click', () => {
+                    card.querySelector('.project-details').classList.toggle('hidden');
+                });
+            });
+
+
+            const skillsData = {
+                'Python': 90, 'C/C++': 75, 'SQL': 70,
+                'Scikit-Learn': 90, 'Pandas': 85, 'NumPy': 85, 'TensorFlow/Keras': 80, 'Matplotlib': 80,
+                'Machine Learning': 90, 'Power Systems': 85, 'Control Systems': 80, 'Data Structures': 75
+            };
+            
+            function showSection(hash) {
+                const targetHash = hash || '#home';
+                contentSections.forEach(section => {
+                    if (`#${section.id}` === targetHash) {
+                        section.classList.add('active');
+                    } else {
+                        section.classList.remove('active');
+                    }
+                });
+                navLinks.forEach(link => {
+                    if (link.getAttribute('href') === targetHash) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+
+                if (targetHash === '#skills' && !window.skillsChartInstance) {
+                   renderSkillsChart();
+                }
+                if(targetHash === '#projects' && !window.projectImpactChartInstance) {
+                    renderProjectImpactChart();
+                }
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = e.currentTarget.getAttribute('href');
+                    history.pushState(null, null, targetId);
+                    showSection(targetId);
+                    if(mobileMenu.classList.contains('block')) {
+                       mobileMenu.classList.remove('block');
+                       mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+
+            window.addEventListener('popstate', () => {
+                showSection(location.hash);
+            });
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                mobileMenu.classList.toggle('block');
+            });
+
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const subject = e.target.subject.value;
+                const body = e.target.message.value;
+                const mailtoLink = `mailto:adityeshagarwal123@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.location.href = mailtoLink;
+            });
+
+            function renderSkillsChart() {
+                const ctx = document.getElementById('skillsChart').getContext('2d');
+                window.skillsChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(skillsData),
+                        datasets: [{
+                            label: 'Proficiency',
+                            data: Object.values(skillsData),
+                            backgroundColor: 'rgba(37, 99, 235, 0.8)',
+                            borderColor: 'rgba(37, 99, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { beginAtZero: true, max: 100, grid: { display: false } },
+                            y: { grid: { display: false } }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Proficiency: ${context.raw}%`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+             function renderProjectImpactChart() {
+                const ctx = document.getElementById('projectImpactChart').getContext('2d');
+                window.projectImpactChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: projectsData.map(p => p.title.split(' ').slice(0, 4).join(' ')),
+                        datasets: [{
+                            label: 'Impact Metric',
+                            data: projectsData.map(p => p.impact),
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.8)',
+                                'rgba(255, 99, 132, 0.8)',
+                                'rgba(75, 192, 192, 0.8)',
+                            ],
+                            borderColor: [
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(75, 192, 192, 1)',
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Percentage (%)' } }
+                        },
+                         plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const project = projectsData[context.dataIndex];
+                                        return `${project.impactLabel}: ${project.impact}%`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function loadProfilePicture() {
+                const savedImageUrl = localStorage.getItem('profileImageUrl');
+                if (savedImageUrl) {
+                    profilePic.src = savedImageUrl;
+                }
+            }
+
+            function checkAdminMode() {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('admin') === 'true') {
+                    settingsBtn.classList.remove('hidden');
+                }
+            }
+
+            settingsBtn.addEventListener('click', () => {
+                const currentUrl = localStorage.getItem('profileImageUrl') || '';
+                imageUrlInput.value = currentUrl;
+                settingsModal.classList.remove('hidden');
+                settingsModal.classList.add('flex');
+            });
+
+            cancelSettingsBtn.addEventListener('click', () => {
+                settingsModal.classList.add('hidden');
+                settingsModal.classList.remove('flex');
+            });
+            
+            saveSettingsBtn.addEventListener('click', () => {
+                const newImageUrl = imageUrlInput.value.trim();
+                if (newImageUrl) {
+                    profilePic.src = newImageUrl;
+                    localStorage.setItem('profileImageUrl', newImageUrl);
+                }
+                settingsModal.classList.add('hidden');
+                settingsModal.classList.remove('flex');
+            });
+
+            loadProfilePicture();
+            checkAdminMode();
+            showSection(location.hash);
+            getAIThought();
+        });
+    </script>
+</body>
+</ht
